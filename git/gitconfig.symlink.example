@@ -4,6 +4,10 @@
 [user]
         name = AUTHORNAME
         email = AUTHOREMAIL
+[init]
+        defaultBranch = main
+[credential]
+        helper = GIT_CREDENTIAL_HELPER
 [alias]
         co = checkout
 [color]

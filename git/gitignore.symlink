@@ -1,0 +1,22 @@
+# Global gitignore (symlinked to ~/.gitignore)
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Language artifacts
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store

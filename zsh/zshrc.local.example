@@ -1,0 +1,28 @@
+# Machine-specific zsh configuration.
+# Copy this file to ~/.zshrc.local and edit it. It is NOT tracked by git.
+
+# Go toolchain (install path differs per OS/package manager).
+#   Linux:  /usr/local/go
+#   macOS:  "$(brew --prefix go)/libexec"
+export GOROOT="/usr/local/go"
+[ -d "$GOROOT/bin" ] && export PATH="$PATH:$GOROOT/bin"
+
+# Google Cloud SDK
+if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then
+  . "$HOME/google-cloud-sdk/path.zsh.inc"
+fi
+if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then
+  . "$HOME/google-cloud-sdk/completion.zsh.inc"
+fi
+
+# Turso
+[ -d "$HOME/.turso" ] && export PATH="$PATH:$HOME/.turso"
+
+# Minikube
+export MINIKUBE_HOME="$HOME/.minikube"
+
+# uv
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+# opencode
+[ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"

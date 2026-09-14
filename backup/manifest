@@ -1,0 +1,14 @@
+# Managed configuration files.
+#
+# Columns (tab-separated):
+#   app     application name
+#   repo    path to the file inside this repository
+#   live    destination on the machine ($HOME and $CONFIG_HOME are expanded;
+#           $CONFIG_HOME is $XDG_CONFIG_HOME, or %APPDATA% on Windows)
+#   backup  yes = snapshot the live file back into this repo
+
+git	git/gitconfig.symlink	$HOME/.gitconfig	no
+git	git/gitignore.symlink	$HOME/.gitignore	yes
+zsh	zsh/zshrc.symlink	$HOME/.zshrc	yes
+micro	micro/bindings.json	$CONFIG_HOME/micro/bindings.json	yes
+opencode	opencode/opencode.jsonc	$CONFIG_HOME/opencode/opencode.jsonc	yes
