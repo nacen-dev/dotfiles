@@ -24,11 +24,12 @@ git clone <this-repo> ~/dotfiles
 ## Applications
 
 Each application lives in its own directory with an `install.sh`.
-`install/installer.sh` runs them all (in sorted order, each in its own
-process).
+`install/installer.sh` runs them all (zsh first, then the rest in sorted order,
+each in its own process).
 
 | Directory    | Installs                              |
 | ------------ | ------------------------------------- |
+| `zsh/`       | zsh shell                             |
 | `oh-my-zsh/` | [Oh My Zsh](https://ohmyz.sh)         |
 | `nvm/`       | nvm (Linux/macOS) / nvm-windows       |
 | `micro/`     | [micro](https://micro-editor.github.io) editor |
@@ -43,7 +44,7 @@ process).
 install/    bootstrap.sh, installer.sh, lib.sh
 backup/     backup.sh, restore.sh, manifest
 git/        gitconfig + global gitignore
-zsh/        zshrc + zshrc.local.example
+zsh/        install.sh + zshrc + zshrc.local.example
 oh-my-zsh/  install.sh
 nvm/        install.sh
 micro/      install.sh + bindings.json
