@@ -89,6 +89,40 @@ config_home () {
   esac
 }
 
+# Verify the SHA256 of a file (sha256sum on Linux, shasum on macOS).
+sha256_verify () {
+  local file=$1 expected=$2 actual=
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual="$(sha256sum "$file" | awk '{print $1}')"
+  elif command -v shasum >/dev/null 2>&1; then
+    actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+  else
+    fail "no sha256 checksum tool found"
+  fi
+  [ "$actual" = "$expected" ] || fail "checksum mismatch for $file"
+}
+
+# Download a pinned installer, verify its checksum, then run it.
+# Usage: fetch_run <url> <sha256> <shell> [args...]
+fetch_run () {
+  local url=$1 sha=$2 shell=$3; shift 3
+  local tmp status=0
+  tmp="$(mktemp)"
+  curl -fsSL -o "$tmp" "$url"
+  sha256_verify "$tmp" "$sha"
+  "$shell" "$tmp" "$@" || status=$?
+  rm -f "$tmp"
+  return "$status"
+}
+
+# Expand the variables allowed inside backup/manifest paths, without eval.
+expand_vars () {
+  local s=$1
+  s=${s//\$HOME/$HOME}
+  s=${s//\$CONFIG_HOME/$CONFIG_HOME}
+  printf '%s' "$s"
+}
+
 # Link a single file, prompting if the destination already exists.
 # Uses (dynamically scoped) overwrite_all / backup_all / skip_all when set.
 link_file () {

@@ -23,9 +23,12 @@ setup_gitconfig () {
   info 'setup gitconfig'
 
   user ' - What is your github author name?'
-  read -e git_authorname
+  read -er git_authorname
   user ' - What is your github author email?'
-  read -e git_authoremail
+  read -er git_authoremail
+
+  git_authorname=$(printf '%s' "$git_authorname" | sed 's/[&/\\]/\\&/g')
+  git_authoremail=$(printf '%s' "$git_authoremail" | sed 's/[&/\\]/\\&/g')
 
   sed -e "s/AUTHORNAME/$git_authorname/g" \
       -e "s/AUTHOREMAIL/$git_authoremail/g" \
@@ -45,6 +48,7 @@ setup_zshrc_local () {
 install_dotfiles () {
   info 'installing dotfiles'
 
+  # Flags consumed by link_file via dynamic scope (see install/lib.sh).
   local overwrite_all=false backup_all=false skip_all=false
 
   while IFS= read -r src; do
@@ -58,10 +62,18 @@ install_apps () {
   "$DOTFILES_ROOT/install/installer.sh"
 }
 
+setup_git_hooks () {
+  if [ -d "$DOTFILES_ROOT/.git" ]; then
+    git -C "$DOTFILES_ROOT" config core.hooksPath .githooks
+    success 'git hooks'
+  fi
+}
+
 install_packages
 setup_gitconfig
 install_apps
 install_dotfiles
 setup_zshrc_local
+setup_git_hooks
 
 success 'all done'

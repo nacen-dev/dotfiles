@@ -19,7 +19,7 @@ while IFS=$'\t' read -r app repo live backup || [ -n "$app" ]; do
   case "$app" in ''|\#*) continue ;; esac
   [ "$backup" = "yes" ] || continue
 
-  local_live="$(eval printf '%s' "$live")"
+  local_live="$(expand_vars "$live")"
   repo_path="$DOTFILES_ROOT/$repo"
 
   if [ ! -e "$local_live" ] && [ ! -L "$local_live" ]; then

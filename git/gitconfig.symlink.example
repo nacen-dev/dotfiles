@@ -17,6 +17,7 @@
         ui = true
 [core]
         excludesfile = ~/.gitignore
+        # Personal preference; these dotfiles install micro, but any editor works.
         editor = vim
 [apply]
         whitespace = nowarn

@@ -2,6 +2,8 @@
 #
 # nvm installer
 
+set -euo pipefail
+
 NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 NVM_VERSION="v0.39.7"
 

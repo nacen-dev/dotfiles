@@ -12,14 +12,16 @@ git clone <this-repo> ~/dotfiles
 
 `bootstrap.sh`:
 
-1. installs required packages using the OS's package manager
-   (`apt`/`dnf`/`pacman`/`zypper`, `brew`, or `winget`/`choco`/`scoop`);
+1. ensures `curl` is available using the OS's package manager
+   (`apt`/`dnf`/`pacman`/`zypper`, `brew`, or `winget`/`choco`/`scoop`; each
+   application installer pulls its own dependencies the same way);
 2. installs applications via `install/installer.sh` (see below);
 3. creates `git/gitconfig.symlink` from the example, prompting for your
    name/email and picking the right credential helper for the OS;
 4. links every `*.symlink` into `$HOME` (app configs are linked by their own
    `install.sh`);
-5. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing.
+5. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing;
+6. installs the pre-commit secret-scan hook (`core.hooksPath=.githooks`).
 
 ## Applications
 
@@ -36,11 +38,12 @@ each in its own process).
 | `opencode/`  | [opencode](https://opencode.ai) + global config |
 | `uv/`        | [uv](https://docs.astral.sh/uv/)      |
 | `go/`        | [Go](https://go.dev) toolchain        |
-| `python/`    | latest stable Python via uv, set default |
+| `python/`    | Python 3.14 via uv, set as default    |
 
 ## Layout
 
 ```
+.githooks/  pre-commit secret scan (core.hooksPath)
 install/    bootstrap.sh, installer.sh, lib.sh
 backup/     backup.sh, restore.sh, manifest
 git/        gitconfig + global gitignore

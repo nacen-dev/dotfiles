@@ -1,2 +1,6 @@
 git/gitconfig.symlink
 zsh/zshrc.local
+.env
+.env.*
+*.pem
+*.key

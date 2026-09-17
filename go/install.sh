@@ -2,7 +2,7 @@
 #
 # Go installer (official tarball on Linux/macOS).
 
-set -e
+set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/../install/lib.sh"
 
