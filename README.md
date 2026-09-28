@@ -27,7 +27,10 @@ git clone <this-repo> ~/dotfiles
 
 Each application lives in its own directory with an `install.sh`.
 `install/installer.sh` runs them all (zsh first, then the rest in sorted order,
-each in its own process).
+each in its own process). If an installer fails, it continues with the remaining
+installers and exits with a failure status after the run. `bootstrap.sh` catches
+that result, completes its remaining setup steps, then exits with a failure
+status instead of reporting that setup completed successfully.
 
 | Directory    | Installs                              |
 | ------------ | ------------------------------------- |

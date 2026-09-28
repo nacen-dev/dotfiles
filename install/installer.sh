@@ -39,6 +39,7 @@ if [ "${#failed[@]}" -gt 0 ]; then
   echo >&2
   echo "${#failed[@]} installer(s) failed; the rest installed successfully:" >&2
   printf '  - %s\n' "${failed[@]}" >&2
+  exit 1
 fi
 
 exit 0

@@ -6,6 +6,8 @@ set -e
 
 source "$(cd "$(dirname "$0")" && pwd)/lib.sh"
 
+apps_failed=false
+
 install_packages () {
   if ! command -v curl >/dev/null 2>&1; then
     info 'installing curl'
@@ -59,7 +61,9 @@ install_dotfiles () {
 
 install_apps () {
   info 'installing applications'
-  "$DOTFILES_ROOT/install/installer.sh"
+  if ! "$DOTFILES_ROOT/install/installer.sh"; then
+    apps_failed=true
+  fi
 }
 
 setup_git_hooks () {
@@ -75,5 +79,9 @@ install_apps
 install_dotfiles
 setup_zshrc_local
 setup_git_hooks
+
+if [ "$apps_failed" = true ]; then
+  fail 'one or more application installers failed'
+fi
 
 success 'all done'
