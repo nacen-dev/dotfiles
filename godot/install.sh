@@ -42,6 +42,7 @@ case "$OS" in
 esac
 
 GODOT_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/godot/${GODOT_VERSION}"
+GODOT_DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/godot"
 GODOT_BIN_DIR="$HOME/.local/bin"
 
 case "$OS" in
@@ -60,13 +61,24 @@ command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Godot"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-# Symlink the launcher, but never delete a real file that already occupies it.
+# Link the launcher without replacing files or symlinks not managed by Godot.
 link_godot_bin () {
   local target=$1 dest="$GODOT_BIN_DIR/godot"
   if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    echo "warning: $dest exists and is not a symlink; leaving it untouched. Add $target to PATH instead." >&2
+    echo "warning: $dest already exists; leaving it untouched. Godot is installed at $target." >&2
+  elif [ -L "$dest" ]; then
+    local current_target
+    current_target="$(readlink "$dest")"
+    case "$current_target" in
+      "$GODOT_DATA_ROOT"/*)
+        ln -sfn "$target" "$dest"
+        ;;
+      *)
+        echo "warning: $dest points outside the Godot install directory; leaving it untouched. Godot is installed at $target." >&2
+        ;;
+    esac
   else
-    ln -sfn "$target" "$dest"
+    ln -s "$target" "$dest"
   fi
 }
 
