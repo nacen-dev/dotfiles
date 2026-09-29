@@ -42,6 +42,7 @@ status instead of reporting that setup completed successfully.
 | `uv/`        | [uv](https://docs.astral.sh/uv/)      |
 | `go/`        | [Go](https://go.dev) toolchain        |
 | `python/`    | Python 3.14 via uv, set as default    |
+| `godot/`     | [Godot](https://godotengine.org) game engine |
 
 ## Layout
 
@@ -58,6 +59,7 @@ opencode/   install.sh + opencode.jsonc
 uv/         install.sh
 go/         install.sh
 python/     install.sh (uses uv)
+godot/      install.sh
 ```
 
 ## Backup & restore
