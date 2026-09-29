@@ -32,6 +32,6 @@ INSTALLER="$(mktemp)"
 trap 'rm -f "$INSTALLER"' EXIT
 
 echo "Downloading Docker's pinned development installer."
-curl -fsSL -o "$INSTALLER" "$DOCKER_INSTALL_URL"
+curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o "$INSTALLER" "$DOCKER_INSTALL_URL"
 sha256_verify "$INSTALLER" "$DOCKER_INSTALL_SHA256"
 sudo sh "$INSTALLER"

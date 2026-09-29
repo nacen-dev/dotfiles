@@ -9,11 +9,6 @@ source "$(cd "$(dirname "$0")" && pwd)/../install/lib.sh"
 # Update this when adopting a newer stable release.
 GODOT_VERSION="4.7.2"
 
-if command -v godot >/dev/null 2>&1 || command -v godot.exe >/dev/null 2>&1; then
-  echo "Godot is already installed. Skipping installation."
-  exit 0
-fi
-
 case "$OS" in
   linux)
     case "$(uname -m)" in
@@ -46,28 +41,54 @@ case "$OS" in
     ;;
 esac
 
-command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Godot"
-
 GODOT_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/godot/${GODOT_VERSION}"
 GODOT_BIN_DIR="$HOME/.local/bin"
+
+case "$OS" in
+  linux)   GODOT_ARTIFACT="$GODOT_DATA_DIR/godot" ;;
+  macos)   GODOT_ARTIFACT="$GODOT_DATA_DIR/Godot.app" ;;
+  windows) GODOT_ARTIFACT="$GODOT_BIN_DIR/godot.exe" ;;
+esac
+
+if [ -e "$GODOT_ARTIFACT" ]; then
+  echo "Godot ${GODOT_VERSION} is already installed. Skipping installation."
+  exit 0
+fi
+
+command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Godot"
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+# Symlink the launcher, but never delete a real file that already occupies it.
+link_godot_bin () {
+  local target=$1 dest="$GODOT_BIN_DIR/godot"
+  if [ -e "$dest" ] && [ ! -L "$dest" ]; then
+    echo "warning: $dest exists and is not a symlink; leaving it untouched. Add $target to PATH instead." >&2
+  else
+    ln -sfn "$target" "$dest"
+  fi
+}
+
 GODOT_URL="https://downloads.godotengine.org/?version=${GODOT_VERSION}&flavor=stable&slug=${GODOT_SLUG}&platform=${GODOT_PLATFORM}"
+GODOT_SUMS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/SHA512-SUMS.txt"
+GODOT_ARCHIVE="Godot_v${GODOT_VERSION}-stable_${GODOT_SLUG}"
 
 echo "Downloading Godot ${GODOT_VERSION} from the official Godot downloads."
-curl -fsSL -o "$TMP_DIR/godot.zip" "$GODOT_URL"
+curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o "$TMP_DIR/godot.zip" "$GODOT_URL"
+GODOT_SHA512="$(curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 "$GODOT_SUMS_URL" | awk -v f="$GODOT_ARCHIVE" '$NF == f {print $1}')"
+sha512_verify "$TMP_DIR/godot.zip" "$GODOT_SHA512"
 mkdir -p "$TMP_DIR/extracted" "$GODOT_DATA_DIR" "$GODOT_BIN_DIR"
 unzip -q "$TMP_DIR/godot.zip" -d "$TMP_DIR/extracted"
 
 case "$OS" in
   linux)
     install -m 0755 "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_DATA_DIR/godot"
-    ln -sfn "$GODOT_DATA_DIR/godot" "$GODOT_BIN_DIR/godot"
+    link_godot_bin "$GODOT_DATA_DIR/godot"
     ;;
   macos)
     ditto "$TMP_DIR/extracted/Godot.app" "$GODOT_DATA_DIR/Godot.app"
-    ln -sfn "$GODOT_DATA_DIR/Godot.app/Contents/MacOS/Godot" "$GODOT_BIN_DIR/godot"
+    link_godot_bin "$GODOT_DATA_DIR/Godot.app/Contents/MacOS/Godot"
     ;;
   windows)
     cp "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_BIN_DIR/godot.exe"

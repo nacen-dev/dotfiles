@@ -32,18 +32,18 @@ installers and exits with a failure status after the run. `bootstrap.sh` catches
 that result, completes its remaining setup steps, then exits with a failure
 status instead of reporting that setup completed successfully.
 
-| Directory    | Installs                              |
-| ------------ | ------------------------------------- |
-| `zsh/`       | zsh shell                             |
-| `oh-my-zsh/` | [Oh My Zsh](https://ohmyz.sh)         |
-| `nvm/`       | nvm (Linux/macOS) / nvm-windows       |
-| `micro/`     | [micro](https://micro-editor.github.io) editor |
-| `opencode/`  | [opencode](https://opencode.ai) + global config |
-| `uv/`        | [uv](https://docs.astral.sh/uv/)      |
-| `go/`        | [Go](https://go.dev) toolchain        |
-| `python/`    | Python 3.14 via uv, set as default    |
-| `godot/`     | [Godot](https://godotengine.org) game engine |
-| `docker/`    | [Docker Engine](https://docs.docker.com/engine/) (Linux only) |
+| Directory     | Installs                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| `zsh/`        | zsh shell                                                                                         |
+| `oh-my-zsh/`  | [Oh My Zsh](https://ohmyz.sh)                                                                     |
+| `nvm/`        | nvm (Linux/macOS) / nvm-windows                                                                   |
+| `micro/`      | [micro](https://micro-editor.github.io) editor                                                    |
+| `opencode/`   | [opencode](https://opencode.ai) + global config                                                   |
+| `uv/`         | [uv](https://docs.astral.sh/uv/)                                                                  |
+| `go/`         | [Go](https://go.dev) toolchain                                                                    |
+| `python/`     | Python 3.14 via uv, set as default                                                                |
+| `godot/`      | [Godot](https://godotengine.org) game engine                                                      |
+| `docker/`     | [Docker Engine](https://docs.docker.com/engine/) (Linux only)                                     |
 | `kubernetes/` | `kubectl` + [kind](https://kind.sigs.k8s.io) local clusters (requires Docker, Podman, or nerdctl) |
 
 ## Layout

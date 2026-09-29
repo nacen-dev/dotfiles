@@ -102,6 +102,19 @@ sha256_verify () {
   [ "$actual" = "$expected" ] || fail "checksum mismatch for $file"
 }
 
+# Verify the SHA512 of a file (sha512sum on Linux, shasum on macOS).
+sha512_verify () {
+  local file=$1 expected=$2 actual=
+  if command -v sha512sum >/dev/null 2>&1; then
+    actual="$(sha512sum "$file" | awk '{print $1}')"
+  elif command -v shasum >/dev/null 2>&1; then
+    actual="$(shasum -a 512 "$file" | awk '{print $1}')"
+  else
+    fail "no sha512 checksum tool found"
+  fi
+  [ "$actual" = "$expected" ] || fail "checksum mismatch for $file"
+}
+
 # Download a pinned installer, verify its checksum, then run it.
 # Usage: fetch_run <url> <sha256> <shell> [args...]
 fetch_run () {
