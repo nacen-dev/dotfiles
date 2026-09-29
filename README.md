@@ -44,6 +44,7 @@ status instead of reporting that setup completed successfully.
 | `python/`    | Python 3.14 via uv, set as default    |
 | `godot/`     | [Godot](https://godotengine.org) game engine |
 | `docker/`    | [Docker Engine](https://docs.docker.com/engine/) (Linux only) |
+| `kubernetes/` | `kubectl` + [kind](https://kind.sigs.k8s.io) local clusters (requires Docker, Podman, or nerdctl) |
 
 ## Layout
 
@@ -62,6 +63,7 @@ go/         install.sh
 python/     install.sh (uses uv)
 godot/      install.sh
 docker/     install.sh (Linux only; skipped on macOS and Windows)
+kubernetes/ install.sh (kubectl + kind; uses an existing container runtime)
 ```
 
 ## Backup & restore
