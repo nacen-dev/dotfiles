@@ -43,6 +43,7 @@ status instead of reporting that setup completed successfully.
 | `go/`        | [Go](https://go.dev) toolchain        |
 | `python/`    | Python 3.14 via uv, set as default    |
 | `godot/`     | [Godot](https://godotengine.org) game engine |
+| `docker/`    | [Docker Engine](https://docs.docker.com/engine/) (Linux only) |
 
 ## Layout
 
@@ -60,6 +61,7 @@ uv/         install.sh
 go/         install.sh
 python/     install.sh (uses uv)
 godot/      install.sh
+docker/     install.sh (Linux only; skipped on macOS and Windows)
 ```
 
 ## Backup & restore
