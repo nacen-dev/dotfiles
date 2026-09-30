@@ -89,6 +89,44 @@ config_home () {
   esac
 }
 
+# Add the dotfiles user binary directory to the persistent Windows user PATH.
+add_local_bin_to_windows_path () {
+  [ "$OS" = windows ] || return 0
+
+  if ! command -v powershell.exe >/dev/null 2>&1 || ! command -v cygpath >/dev/null 2>&1; then
+    echo "warning: unable to update Windows PATH; add $(cygpath -w "$HOME/.local/bin" 2>/dev/null || printf '%s' "$HOME/.local/bin") manually." >&2
+    return 0
+  fi
+
+  local bin_dir
+  bin_dir="$(cygpath -w "$HOME/.local/bin")"
+  if MSYS_NO_PATHCONV=1 DOTFILES_LOCAL_BIN="$bin_dir" powershell.exe -NoProfile -NonInteractive -Command '
+try {
+  $bin = $env:DOTFILES_LOCAL_BIN.TrimEnd([char]92)
+  $userPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
+  $present = $false
+  if (-not [string]::IsNullOrWhiteSpace($userPath)) {
+    foreach ($entry in ($userPath -split ";")) {
+      if ($entry.TrimEnd([char]92) -ieq $bin) { $present = $true; break }
+    }
+  }
+  if (-not $present) {
+    if ([string]::IsNullOrWhiteSpace($userPath)) { $userPath = $bin }
+    else { $userPath = "$userPath;$bin" }
+    [Environment]::SetEnvironmentVariable("Path", $userPath, [EnvironmentVariableTarget]::User)
+  }
+} catch {
+  [Console]::Error.WriteLine($_.Exception.Message)
+  exit 1
+}
+exit 0
+'; then
+    success "Windows user PATH includes $bin_dir (open a new Git Bash session)"
+  else
+    echo "warning: unable to update Windows PATH; add $bin_dir manually." >&2
+  fi
+}
+
 # Verify the SHA256 of a file (sha256sum on Linux, shasum on macOS).
 sha256_verify () {
   local file=$1 expected=$2 actual=

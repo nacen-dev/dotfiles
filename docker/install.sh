@@ -24,8 +24,13 @@ case "$OS" in
 esac
 
 if command -v docker >/dev/null 2>&1; then
-  echo "Docker is already installed. Skipping installation."
-  exit 0
+  if docker info >/dev/null 2>&1; then
+    echo "Docker Engine is reachable. Skipping installation."
+    exit 0
+  elif command -v dockerd >/dev/null 2>&1; then
+    echo "warning: dockerd is installed but Docker Engine is not reachable; check the service and permissions. Skipping installation." >&2
+    exit 0
+  fi
 fi
 
 INSTALLER="$(mktemp)"

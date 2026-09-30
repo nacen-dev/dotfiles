@@ -66,6 +66,10 @@ install_apps () {
   fi
 }
 
+setup_local_bin_path () {
+  add_local_bin_to_windows_path
+}
+
 setup_git_hooks () {
   if [ -d "$DOTFILES_ROOT/.git" ]; then
     git -C "$DOTFILES_ROOT" config core.hooksPath .githooks
@@ -76,6 +80,7 @@ setup_git_hooks () {
 install_packages
 setup_gitconfig
 install_apps
+setup_local_bin_path
 install_dotfiles
 setup_zshrc_local
 setup_git_hooks

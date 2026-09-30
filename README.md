@@ -20,8 +20,10 @@ git clone <this-repo> ~/dotfiles
    name/email and picking the right credential helper for the OS;
 4. links every `*.symlink` into `$HOME` (app configs are linked by their own
    `install.sh`);
-5. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing;
-6. installs the pre-commit secret-scan hook (`core.hooksPath=.githooks`).
+5. adds `~/.local/bin` to zsh's `PATH` and, on Windows, to the current user's
+   persistent `PATH` (restart Git Bash to pick up the Windows change);
+6. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing;
+7. installs the pre-commit secret-scan hook (`core.hooksPath=.githooks`).
 
 ## Applications
 

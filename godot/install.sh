@@ -44,22 +44,32 @@ esac
 GODOT_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/godot/${GODOT_VERSION}"
 GODOT_DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/godot"
 GODOT_BIN_DIR="$HOME/.local/bin"
+GODOT_WINDOWS_LAUNCHER="$GODOT_BIN_DIR/godot.exe"
+GODOT_WINDOWS_MARKER="$GODOT_BIN_DIR/.godot-managed-version"
 
 case "$OS" in
   linux)   GODOT_ARTIFACT="$GODOT_DATA_DIR/godot" ;;
-  macos)   GODOT_ARTIFACT="$GODOT_DATA_DIR/Godot.app" ;;
-  windows) GODOT_ARTIFACT="$GODOT_BIN_DIR/godot.exe" ;;
+  macos)   GODOT_ARTIFACT="$GODOT_DATA_DIR/Godot.app/Contents/MacOS/Godot" ;;
+  windows) GODOT_ARTIFACT="$GODOT_DATA_DIR/godot.exe" ;;
 esac
 
-if [ -e "$GODOT_ARTIFACT" ]; then
+GODOT_ARTIFACT_READY=false
+if [ "$OS" = windows ]; then
+  if [ -f "$GODOT_ARTIFACT" ]; then
+    GODOT_ARTIFACT_READY=true
+  fi
+  if [ "$GODOT_ARTIFACT_READY" = true ] &&
+     [ -f "$GODOT_WINDOWS_LAUNCHER" ] &&
+     [ ! -L "$GODOT_WINDOWS_LAUNCHER" ] &&
+     [ -f "$GODOT_WINDOWS_MARKER" ] &&
+     [ "$(<"$GODOT_WINDOWS_MARKER")" = "$GODOT_VERSION" ]; then
+    echo "Godot ${GODOT_VERSION} is already installed. Skipping installation."
+    exit 0
+  fi
+elif [ -x "$GODOT_ARTIFACT" ]; then
   echo "Godot ${GODOT_VERSION} is already installed. Skipping installation."
   exit 0
 fi
-
-command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Godot"
-
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
 
 # Link the launcher without replacing files or symlinks not managed by Godot.
 link_godot_bin () {
@@ -86,25 +96,54 @@ GODOT_URL="https://downloads.godotengine.org/?version=${GODOT_VERSION}&flavor=st
 GODOT_SUMS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/SHA512-SUMS.txt"
 GODOT_ARCHIVE="Godot_v${GODOT_VERSION}-stable_${GODOT_SLUG}"
 
-echo "Downloading Godot ${GODOT_VERSION} from the official Godot downloads."
-curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o "$TMP_DIR/godot.zip" "$GODOT_URL"
-GODOT_SHA512="$(curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 "$GODOT_SUMS_URL" | awk -v f="$GODOT_ARCHIVE" '$NF == f {print $1}')"
-sha512_verify "$TMP_DIR/godot.zip" "$GODOT_SHA512"
-mkdir -p "$TMP_DIR/extracted" "$GODOT_DATA_DIR" "$GODOT_BIN_DIR"
-unzip -q "$TMP_DIR/godot.zip" -d "$TMP_DIR/extracted"
+if [ "$GODOT_ARTIFACT_READY" != true ]; then
+  command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Godot"
+
+  TMP_DIR="$(mktemp -d)"
+  trap 'rm -rf "$TMP_DIR"' EXIT
+
+  echo "Downloading Godot ${GODOT_VERSION} from the official Godot downloads."
+  curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o "$TMP_DIR/godot.zip" "$GODOT_URL"
+  GODOT_SHA512="$(curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 "$GODOT_SUMS_URL" | awk -v f="$GODOT_ARCHIVE" '$NF == f {print $1}')"
+  sha512_verify "$TMP_DIR/godot.zip" "$GODOT_SHA512"
+  mkdir -p "$TMP_DIR/extracted" "$GODOT_DATA_DIR" "$GODOT_BIN_DIR"
+  unzip -q "$TMP_DIR/godot.zip" -d "$TMP_DIR/extracted"
+
+  case "$OS" in
+    linux)
+      install -m 0755 "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_ARTIFACT"
+      ;;
+    macos)
+      ditto "$TMP_DIR/extracted/Godot.app" "$GODOT_DATA_DIR/Godot.app"
+      ;;
+    windows)
+      cp "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_ARTIFACT"
+      ;;
+  esac
+else
+  mkdir -p "$GODOT_BIN_DIR"
+fi
 
 case "$OS" in
   linux)
-    install -m 0755 "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_DATA_DIR/godot"
-    link_godot_bin "$GODOT_DATA_DIR/godot"
+    link_godot_bin "$GODOT_ARTIFACT"
+    echo "Godot ${GODOT_VERSION} installed in $GODOT_BIN_DIR."
     ;;
   macos)
-    ditto "$TMP_DIR/extracted/Godot.app" "$GODOT_DATA_DIR/Godot.app"
-    link_godot_bin "$GODOT_DATA_DIR/Godot.app/Contents/MacOS/Godot"
+    link_godot_bin "$GODOT_ARTIFACT"
+    echo "Godot ${GODOT_VERSION} installed in $GODOT_BIN_DIR."
     ;;
   windows)
-    cp "$TMP_DIR/extracted/$GODOT_EXECUTABLE" "$GODOT_BIN_DIR/godot.exe"
+    if [ ! -e "$GODOT_WINDOWS_LAUNCHER" ] && [ ! -L "$GODOT_WINDOWS_LAUNCHER" ]; then
+      cp "$GODOT_ARTIFACT" "$GODOT_WINDOWS_LAUNCHER"
+      printf '%s\n' "$GODOT_VERSION" > "$GODOT_WINDOWS_MARKER"
+      echo "Godot ${GODOT_VERSION} installed in $GODOT_BIN_DIR."
+    elif [ -f "$GODOT_WINDOWS_MARKER" ] && [ ! -L "$GODOT_WINDOWS_LAUNCHER" ]; then
+      cp "$GODOT_ARTIFACT" "$GODOT_WINDOWS_LAUNCHER"
+      printf '%s\n' "$GODOT_VERSION" > "$GODOT_WINDOWS_MARKER"
+      echo "Godot ${GODOT_VERSION} updated in $GODOT_BIN_DIR."
+    else
+      echo "warning: $GODOT_WINDOWS_LAUNCHER already exists and is not managed by this installer; leaving it untouched. Godot ${GODOT_VERSION} is installed at $GODOT_ARTIFACT." >&2
+    fi
     ;;
 esac
-
-echo "Godot ${GODOT_VERSION} installed in $GODOT_BIN_DIR."
