@@ -18,6 +18,10 @@ install_packages () {
 
 setup_gitconfig () {
   local target="$DOTFILES_ROOT/git/gitconfig.symlink"
+  if [ -e "$HOME/.gitconfig" ] || [ -L "$HOME/.gitconfig" ]; then
+    success 'existing gitconfig found; leaving it untouched'
+    return
+  fi
   if [ -f "$target" ]; then
     success 'gitconfig already exists'
     return
@@ -55,6 +59,12 @@ install_dotfiles () {
 
   while IFS= read -r src; do
     local dst="$HOME/.$(basename "${src%.symlink}")"
+    if [ "$src" = "$DOTFILES_ROOT/git/gitconfig.symlink" ] &&
+       { [ -e "$dst" ] || [ -L "$dst" ]; } &&
+       ! [ "$dst" -ef "$src" ]; then
+      success "existing gitconfig at $dst; leaving it untouched"
+      continue
+    fi
     link_file "$src" "$dst"
   done < <(find "$DOTFILES_ROOT" -maxdepth 2 -name '*.symlink' -not -path '*/.git/*' | sort)
 }
