@@ -4,6 +4,10 @@
 [user]
         name = AUTHORNAME
         email = AUTHOREMAIL
+[init]
+        defaultBranch = main
+[credential]
+        helper = GIT_CREDENTIAL_HELPER
 [alias]
         co = checkout
 [color]
@@ -13,6 +17,7 @@
         ui = true
 [core]
         excludesfile = ~/.gitignore
+        # Personal preference; these dotfiles install micro, but any editor works.
         editor = vim
 [apply]
         whitespace = nowarn
