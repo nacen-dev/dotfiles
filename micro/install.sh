@@ -8,6 +8,8 @@ source "$(cd "$(dirname "$0")" && pwd)/../install/lib.sh"
 
 # Pinned micro release; update the version and per-arch hashes together.
 MICRO_VERSION="2.0.15"
+# Chocolatey's community package currently lags the upstream release.
+MICRO_CHOCO_VERSION="2.0.11"
 
 # Emits "<asset-arch> <sha256>" for the current machine.
 micro_release_target () {
@@ -45,10 +47,12 @@ install_micro () {
       fi
       ;;
     windows)
-      if command -v scoop >/dev/null 2>&1; then
-        scoop install micro
-      elif command -v winget >/dev/null 2>&1; then
-        winget install --silent zyedidia.micro
+      if command -v winget >/dev/null 2>&1; then
+        echo "Installing micro ${MICRO_VERSION} via WinGet."
+        winget install --silent --id zyedidia.micro --exact --version "$MICRO_VERSION"
+      elif command -v choco >/dev/null 2>&1; then
+        echo "Installing micro ${MICRO_CHOCO_VERSION} via Chocolatey (latest package; upstream pin is ${MICRO_VERSION})."
+        choco install -y micro --version="$MICRO_CHOCO_VERSION"
       else
         fail "install micro manually: https://micro-editor.github.io"
       fi
@@ -62,7 +66,9 @@ install_micro () {
 if command -v micro >/dev/null 2>&1; then
   echo "micro is already installed. Skipping installation."
 else
-  echo "Installing micro."
+  if [ "$OS" != windows ]; then
+    echo "Installing micro."
+  fi
   install_micro
 fi
 

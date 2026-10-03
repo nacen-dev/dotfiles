@@ -10,6 +10,9 @@ apps_failed=false
 
 install_packages () {
   if ! command -v curl >/dev/null 2>&1; then
+    if [ "$OS" = windows ]; then
+      fail 'curl is required on Windows but was not found; install curl and rerun bootstrap'
+    fi
     info 'installing curl'
     pkg_install curl
   fi

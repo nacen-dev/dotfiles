@@ -28,10 +28,10 @@ install_opencode () {
       fi
       ;;
     windows)
-      if command -v choco >/dev/null 2>&1; then
+      if command -v winget >/dev/null 2>&1; then
+        winget install --silent -e --id SST.opencode
+      elif command -v choco >/dev/null 2>&1; then
         choco install -y opencode
-      elif command -v scoop >/dev/null 2>&1; then
-        scoop install opencode
       else
         fail "install opencode manually: https://opencode.ai/docs"
       fi

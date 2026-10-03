@@ -41,8 +41,6 @@ install_go () {
         winget install --silent GoLang.Go
       elif command -v choco >/dev/null 2>&1; then
         choco install -y golang
-      elif command -v scoop >/dev/null 2>&1; then
-        scoop install go
       else
         fail "install Go manually: https://go.dev/dl"
       fi

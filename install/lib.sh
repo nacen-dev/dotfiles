@@ -61,8 +61,6 @@ pkg_install () {
         winget install --silent "$@"
       elif command -v choco >/dev/null 2>&1; then
         choco install -y "$@"
-      elif command -v scoop >/dev/null 2>&1; then
-        scoop install "$@"
       else
         fail "no supported package manager found"
       fi
