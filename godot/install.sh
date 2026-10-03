@@ -47,6 +47,18 @@ GODOT_BIN_DIR="$HOME/.local/bin"
 GODOT_WINDOWS_LAUNCHER="$GODOT_BIN_DIR/godot.exe"
 GODOT_WINDOWS_MARKER="$GODOT_BIN_DIR/.godot-managed-version"
 
+if [ "$OS" = windows ]; then
+  if command -v godot.exe >/dev/null 2>&1 || [ -x "$GODOT_WINDOWS_LAUNCHER" ]; then
+    echo "Godot is already installed. Skipping installation."
+    exit 0
+  fi
+else
+  if command -v godot >/dev/null 2>&1 || command -v godot4 >/dev/null 2>&1 || [ -x "$GODOT_BIN_DIR/godot" ]; then
+    echo "Godot is already installed. Skipping installation."
+    exit 0
+  fi
+fi
+
 case "$OS" in
   linux)   GODOT_ARTIFACT="$GODOT_DATA_DIR/godot" ;;
   macos)   GODOT_ARTIFACT="$GODOT_DATA_DIR/Godot.app/Contents/MacOS/Godot" ;;

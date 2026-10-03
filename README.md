@@ -17,9 +17,10 @@ git clone <this-repo> ~/dotfiles
    application installer pulls its own dependencies the same way);
 2. installs applications via `install/installer.sh` (see below);
 3. creates `git/gitconfig.symlink` from the example, prompting for your
-   name/email and picking the right credential helper for the OS;
+   name/email and picking the right credential helper for the OS, unless
+   `~/.gitconfig` already exists;
 4. links every `*.symlink` into `$HOME` (app configs are linked by their own
-   `install.sh`);
+   `install.sh`), preserving an existing `~/.gitconfig`;
 5. adds `~/.local/bin` to zsh's `PATH` and, on Windows, to the current user's
    persistent `PATH` (restart Git Bash to pick up the Windows change);
 6. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing;
@@ -32,7 +33,10 @@ Each application lives in its own directory with an `install.sh`.
 each in its own process). If an installer fails, it continues with the remaining
 installers and exits with a failure status after the run. `bootstrap.sh` catches
 that result, completes its remaining setup steps, then exits with a failure
-status instead of reporting that setup completed successfully.
+status instead of reporting that setup completed successfully. Installers skip
+a tool that is already available and leave it untouched, and report tools that
+do not apply to the current platform (such as Zsh on Windows) as skipped rather
+than failed.
 
 | Directory     | Installs                                                                                          |
 | ------------- | ------------------------------------------------------------------------------------------------- |
@@ -43,8 +47,8 @@ status instead of reporting that setup completed successfully.
 | `opencode/`   | [opencode](https://opencode.ai) + global config                                                   |
 | `uv/`         | [uv](https://docs.astral.sh/uv/)                                                                  |
 | `go/`         | [Go](https://go.dev) toolchain                                                                    |
-| `python/`     | Python 3.14 via uv, set as default                                                                |
-| `godot/`      | [Godot](https://godotengine.org) game engine                                                      |
+| `python/`     | Python 3.14 via uv, set as default (skipped if `python3` exists)                                  |
+| `godot/`      | [Godot](https://godotengine.org) game engine (skipped if already installed)                       |
 | `docker/`     | [Docker Engine](https://docs.docker.com/engine/) (Linux only)                                     |
 | `kubernetes/` | `kubectl` + [kind](https://kind.sigs.k8s.io) local clusters (requires Docker, Podman, or nerdctl) |
 
@@ -90,7 +94,8 @@ already edits the repo. Paths are resolved per OS (`$XDG_CONFIG_HOME`, or
 
 These files are **not tracked** by git:
 
-- `git/gitconfig.symlink` — generated from `git/gitconfig.symlink.example`
+- `git/gitconfig.symlink` — generated from `git/gitconfig.symlink.example`,
+  but not regenerated when `~/.gitconfig` already exists
 - `zsh/zshrc.local` — copied from `zsh/zshrc.local.example`
 
 Put host-specific exports (Go, gcloud, turso, minikube, uv, opencode, ...)
@@ -100,4 +105,5 @@ in `~/.zshrc.local`; keep `zsh/zshrc.symlink` portable.
 
 Linux is the primary target. macOS and Windows (Git Bash) are supported on a
 best-effort basis; symlink creation falls back to copying if the OS does not
-allow symlinks.
+allow symlinks. Installers that do not apply to the current platform are
+skipped rather than treated as failures.
