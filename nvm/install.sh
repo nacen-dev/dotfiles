@@ -17,7 +17,7 @@ case "$(uname -s)" in
     curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
     ;;
   MINGW*|MSYS*|CYGWIN*)
-    if command -v nvm.exe >/dev/null 2>&1; then
+    if command -v nvm >/dev/null 2>&1 || command -v nvm.exe >/dev/null 2>&1; then
       echo "nvm-windows is already installed. Skipping installation."
       exit 0
     fi

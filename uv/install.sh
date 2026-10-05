@@ -33,7 +33,7 @@ install_uv () {
       tmp="$UV_INSTALL_TMP_DIR/install.ps1"
       curl -fsSL -o "$tmp" "$UV_INSTALL_PS1_URL"
       sha256_verify "$tmp" "$UV_INSTALL_PS1_SHA256"
-      powershell -ExecutionPolicy ByPass -File "$tmp"
+      powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command - < "$tmp"
       ;;
     *)
       fail "unsupported OS"

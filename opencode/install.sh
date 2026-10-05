@@ -28,13 +28,31 @@ install_opencode () {
       fi
       ;;
     windows)
+      local winget_available=false
       if command -v winget >/dev/null 2>&1; then
-        winget install --silent -e --id SST.opencode
-      elif command -v choco >/dev/null 2>&1; then
-        choco install -y opencode
-      else
-        fail "install opencode manually: https://opencode.ai/docs"
+        winget_available=true
+        if winget install --silent -e --id SST.opencode \
+          --accept-source-agreements --accept-package-agreements; then
+          return 0
+        fi
+        echo "WinGet failed to install OpenCode; checking for Chocolatey." >&2
       fi
+
+      if command -v choco >/dev/null 2>&1; then
+        echo "Installing OpenCode with Chocolatey."
+        if choco install -y opencode; then
+          return 0
+        fi
+        if [ "$winget_available" = true ]; then
+          fail "OpenCode installation failed with both WinGet and Chocolatey."
+        fi
+        fail "OpenCode installation failed with Chocolatey."
+      fi
+
+      if [ "$winget_available" = true ]; then
+        fail "WinGet failed to install OpenCode, and Chocolatey is not installed. Install Chocolatey or install OpenCode manually: https://opencode.ai/docs"
+      fi
+      fail "Neither WinGet nor Chocolatey is installed; install OpenCode manually: https://opencode.ai/docs"
       ;;
     *)
       fail "unsupported OS"
