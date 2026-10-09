@@ -12,15 +12,17 @@ go_arch () {
     aarch64|arm64)  echo arm64 ;;
     armv6l)         echo armv6l ;;
     i386|i686)      echo 386 ;;
-    *)              fail "unsupported architecture: $(uname -m)" ;;
+    *)              return 1 ;;
   esac
 }
 
 install_go_tarball () {
   local platform=$1
   local version arch tarball tmp
+  if ! arch="$(go_arch)"; then
+    fail "unsupported architecture: $(uname -m)"
+  fi
   version="$(curl -fsSL 'https://go.dev/VERSION?m=text' | head -n1)"
-  arch="$(go_arch)"
   tarball="${version}.${platform}-${arch}.tar.gz"
   tmp="$(mktemp -d)"
 

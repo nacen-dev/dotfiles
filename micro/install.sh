@@ -18,13 +18,16 @@ micro_release_target () {
     i386|i686)     echo "linux32 a105dcf5407760d11dd29c6e014238c655b1db2b0c3f08eb0e83fc986fbda196" ;;
     armv6l|armv7l) echo "linux-arm 54e5bc8a786ca103ec7e3c6d81c2799e21b21660e92edfbbdaa0561a6e601797" ;;
     aarch64|arm64) echo "linux-arm64 5ca127857bf5500be3879f1a70b27556e737a49da04a1be5334de9e8e8781ad9" ;;
-    *)             fail "unsupported architecture for micro: $(uname -m)" ;;
+    *)             return 1 ;;
   esac
 }
 
 install_micro_release () {
-  local arch sha file tmp
-  read -r arch sha < <(micro_release_target)
+  local target arch sha file tmp
+  if ! target="$(micro_release_target)"; then
+    fail "unsupported architecture for micro: $(uname -m)"
+  fi
+  read -r arch sha <<< "$target"
   file="micro-${MICRO_VERSION}-${arch}.tar.gz"
   tmp="$(mktemp -d)"
   curl -fsSL -o "$tmp/$file" "https://github.com/micro-editor/micro/releases/download/v${MICRO_VERSION}/${file}"
