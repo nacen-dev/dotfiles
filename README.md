@@ -10,11 +10,16 @@ git clone <this-repo> ~/dotfiles
 ~/dotfiles/install/bootstrap.sh
 ```
 
+The bootstrap requires Git, Bash, and `curl`. On Windows, run it in Git Bash
+with PowerShell available; if `curl` is missing, bootstrap stops and asks you to
+install it. Windows application installers use WinGet or Chocolatey where
+supported.
+
 `bootstrap.sh`:
 
-1. ensures `curl` is available using the OS's package manager
-   (`apt`/`dnf`/`pacman`/`zypper`, `brew`, or `winget`/`choco`/`scoop`; each
-   application installer pulls its own dependencies the same way);
+1. installs `curl` with the OS's package manager on Linux/macOS
+   (`apt`/`dnf`/`pacman`/`zypper` or `brew`); Windows requires `curl` to already
+   be available in Git Bash;
 2. installs applications via `install/installer.sh` (see below);
 3. creates `git/gitconfig.symlink` from the example, prompting for your
    name/email and picking the right credential helper for the OS, unless
@@ -43,7 +48,7 @@ than failed.
 | `zsh/`        | zsh shell                                                                                         |
 | `oh-my-zsh/`  | [Oh My Zsh](https://ohmyz.sh)                                                                     |
 | `nvm/`        | nvm (Linux/macOS) / nvm-windows                                                                   |
-| `micro/`      | [micro](https://micro-editor.github.io) editor                                                    |
+| `micro/`      | [micro](https://micro-editor.github.io) editor (Windows: 2.0.15 via WinGet, 2.0.11 via Chocolatey) |
 | `opencode/`   | [opencode](https://opencode.ai) + global config                                                   |
 | `uv/`         | [uv](https://docs.astral.sh/uv/)                                                                  |
 | `go/`         | [Go](https://go.dev) toolchain                                                                    |

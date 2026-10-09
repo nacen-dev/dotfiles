@@ -8,6 +8,8 @@ source "$(cd "$(dirname "$0")" && pwd)/../install/lib.sh"
 
 # Pinned micro release; update the version and per-arch hashes together.
 MICRO_VERSION="2.0.15"
+# Chocolatey's community package currently lags the upstream release.
+MICRO_CHOCO_VERSION="2.0.11"
 
 # Emits "<asset-arch> <sha256>" for the current machine.
 micro_release_target () {
@@ -16,13 +18,16 @@ micro_release_target () {
     i386|i686)     echo "linux32 a105dcf5407760d11dd29c6e014238c655b1db2b0c3f08eb0e83fc986fbda196" ;;
     armv6l|armv7l) echo "linux-arm 54e5bc8a786ca103ec7e3c6d81c2799e21b21660e92edfbbdaa0561a6e601797" ;;
     aarch64|arm64) echo "linux-arm64 5ca127857bf5500be3879f1a70b27556e737a49da04a1be5334de9e8e8781ad9" ;;
-    *)             fail "unsupported architecture for micro: $(uname -m)" ;;
+    *)             return 1 ;;
   esac
 }
 
 install_micro_release () {
-  local arch sha file tmp
-  read -r arch sha < <(micro_release_target)
+  local target arch sha file tmp
+  if ! target="$(micro_release_target)"; then
+    fail "unsupported architecture for micro: $(uname -m)"
+  fi
+  read -r arch sha <<< "$target"
   file="micro-${MICRO_VERSION}-${arch}.tar.gz"
   tmp="$(mktemp -d)"
   curl -fsSL -o "$tmp/$file" "https://github.com/micro-editor/micro/releases/download/v${MICRO_VERSION}/${file}"
@@ -45,10 +50,12 @@ install_micro () {
       fi
       ;;
     windows)
-      if command -v scoop >/dev/null 2>&1; then
-        scoop install micro
-      elif command -v winget >/dev/null 2>&1; then
-        winget install --silent zyedidia.micro
+      if command -v winget >/dev/null 2>&1; then
+        echo "Installing micro ${MICRO_VERSION} via WinGet."
+        winget install --silent --id zyedidia.micro --exact --version "$MICRO_VERSION"
+      elif command -v choco >/dev/null 2>&1; then
+        echo "Installing micro ${MICRO_CHOCO_VERSION} via Chocolatey (latest package; upstream pin is ${MICRO_VERSION})."
+        choco install -y micro --version="$MICRO_CHOCO_VERSION"
       else
         fail "install micro manually: https://micro-editor.github.io"
       fi
@@ -62,7 +69,9 @@ install_micro () {
 if command -v micro >/dev/null 2>&1; then
   echo "micro is already installed. Skipping installation."
 else
-  echo "Installing micro."
+  if [ "$OS" != windows ]; then
+    echo "Installing micro."
+  fi
   install_micro
 fi
 

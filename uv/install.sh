@@ -12,6 +12,7 @@ UV_INSTALL_SH_URL="https://astral.sh/uv/${UV_VERSION}/install.sh"
 UV_INSTALL_SH_SHA256="716a1d6844740756c68770fcec2f79c2013fb9b03869a113f61e15f6f482a6a1"
 UV_INSTALL_PS1_URL="https://astral.sh/uv/${UV_VERSION}/install.ps1"
 UV_INSTALL_PS1_SHA256="63f2d7e2ccc347cc018127b22f56f569080e5730a390dcb702b654daf6822193"
+UV_INSTALL_TMP_DIR=
 
 install_uv () {
   case "$OS" in
@@ -27,11 +28,12 @@ install_uv () {
       ;;
     windows)
       local tmp
-      tmp="$(mktemp)"
+      UV_INSTALL_TMP_DIR="$(mktemp -d)"
+      trap 'rm -rf -- "$UV_INSTALL_TMP_DIR"' EXIT
+      tmp="$UV_INSTALL_TMP_DIR/install.ps1"
       curl -fsSL -o "$tmp" "$UV_INSTALL_PS1_URL"
       sha256_verify "$tmp" "$UV_INSTALL_PS1_SHA256"
-      powershell -ExecutionPolicy ByPass -File "$tmp"
-      rm -f "$tmp"
+      powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command - < "$tmp"
       ;;
     *)
       fail "unsupported OS"

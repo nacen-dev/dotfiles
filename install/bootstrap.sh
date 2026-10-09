@@ -10,6 +10,9 @@ apps_failed=false
 
 install_packages () {
   if ! command -v curl >/dev/null 2>&1; then
+    if [ "$OS" = windows ]; then
+      fail 'curl is required on Windows but was not found; install curl and rerun bootstrap'
+    fi
     info 'installing curl'
     pkg_install curl
   fi
@@ -57,7 +60,8 @@ install_dotfiles () {
   # Flags consumed by link_file via dynamic scope (see install/lib.sh).
   local overwrite_all=false backup_all=false skip_all=false
 
-  while IFS= read -r src; do
+  # Read NUL-delimited paths from fd 3, leaving stdin available for link_file prompts.
+  while IFS= read -r -d '' src <&3; do
     local dst="$HOME/.$(basename "${src%.symlink}")"
     if [ "$src" = "$DOTFILES_ROOT/git/gitconfig.symlink" ] &&
        { [ -e "$dst" ] || [ -L "$dst" ]; } &&
@@ -66,7 +70,11 @@ install_dotfiles () {
       continue
     fi
     link_file "$src" "$dst"
-  done < <(find "$DOTFILES_ROOT" -maxdepth 2 -name '*.symlink' -not -path '*/.git/*' | sort)
+  # Feed find's NUL-delimited output to fd 3, keeping stdin free for prompts.
+  done 3< <(
+    find "$DOTFILES_ROOT" -maxdepth 2 -name '*.symlink' \
+      -not -path '*/.git/*' -print0
+  )
 }
 
 install_apps () {
