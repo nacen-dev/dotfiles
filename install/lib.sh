@@ -172,6 +172,46 @@ expand_vars () {
   printf '%s' "$s"
 }
 
+# Whether the destination's filesystem allows creating real symlinks.
+#
+# link_file falls back to copying when it cannot create a symlink, and on a
+# later run that copied destination is a plain file that should be recognized as
+# already deployed. That recognition is only safe where symlinks are genuinely
+# unavailable, because on Linux/macOS an identical regular file should still be
+# treated as a conflict and adopted as a managed symlink.
+#
+# Some Windows (Git Bash) setups make `ln -s` "succeed" by creating a copy
+# instead of a symlink, so `[ -L ]` confirms a real symlink was produced. The
+# probe is made in the destination's parent directory because symlink support
+# can differ between filesystems.
+#
+# If the probe cannot be created, support is treated as unknown and this helper
+# returns success. That disables the content-based skip: it is safer to handle
+# an identical regular file as a conflict than to claim it is a managed copy
+# without having confirmed that symlinks are unavailable.
+symlinks_supported () {
+  local destination=$1 parent probe_dir probe_target supported=true
+  parent="$(dirname "$destination")"
+
+  if ! probe_dir="$(mktemp -d "$parent/.dotfiles-symlink-probe.XXXXXX" 2>/dev/null)"; then
+    return 0
+  fi
+
+  probe_target="$probe_dir/target"
+  if ! : > "$probe_target"; then
+    rm -rf "$probe_dir" >/dev/null 2>&1 || true
+    return 0
+  fi
+
+  if ! ln -s "$probe_target" "$probe_dir/probe" 2>/dev/null ||
+     [ ! -L "$probe_dir/probe" ]; then
+    supported=false
+  fi
+
+  rm -rf "$probe_dir" >/dev/null 2>&1 || true
+  [ "$supported" = true ]
+}
+
 # Link a single file, prompting if the destination already exists.
 # Uses (dynamically scoped) overwrite_all / backup_all / skip_all when set.
 link_file () {
@@ -183,7 +223,20 @@ link_file () {
     local currentSrc
     currentSrc="$(readlink "$dst" 2>/dev/null || true)"
 
-    if [ "$currentSrc" = "$src" ]; then
+    # Treat the destination as already deployed when it is provably the managed
+    # source: an exact symlink target, or `-ef` (both paths resolve to the same
+    # inode, e.g. a relative symlink spelled differently).
+    #
+    # When symlinks are unavailable (see symlinks_supported), an earlier run may
+    # have fallen back to copying the config, so a regular file whose contents
+    # match the source is the deployed config and is skipped. `[ ! -L "$dst" ]`
+    # excludes symlink destinations (`-f` follows symlinks), while the `-f`
+    # checks require file paths and `cmp -s` compares their contents. This check
+    # is gated on symlinks being unavailable: on a platform that can create
+    # symlinks, an identical regular file is still a conflict and should be
+    # adopted (backed up and linked) rather than silently skipped.
+    if [ "$currentSrc" = "$src" ] || [ "$dst" -ef "$src" ] ||
+       { ! symlinks_supported "$dst" && [ ! -L "$dst" ] && [ -f "$dst" ] && [ -f "$src" ] && cmp -s "$dst" "$src"; }; then
       skip=true
     elif [ "${overwrite_all:-false}" = "false" ] && [ "${backup_all:-false}" = "false" ] && [ "${skip_all:-false}" = "false" ]; then
       user "File already exists: $dst ($(basename "$src")), what do you want to do?\n\
@@ -221,9 +274,21 @@ link_file () {
     fi
   fi
 
+  # On platforms without symlink support `ln -s` fails, and some Windows setups
+  # make it "succeed" by copying. A real symlink is confirmed with `-L`; when it
+  # is not one, the artifact left behind is removed and replaced by a clean copy
+  # so the result matches what symlinks_supported reports. (`-L` is only checked
+  # after a successful `ln -s`, so a pre-existing user file that made `ln -s`
+  # fail is never removed here.)
   if [ "$skip" != "true" ]; then
     if ln -s "$src" "$dst" 2>/dev/null; then
-      success "linked $src to $dst"
+      if [ -L "$dst" ]; then
+        success "linked $src to $dst"
+      else
+        rm -rf "$dst"
+        cp -R "$src" "$dst"
+        success "copied $src to $dst (symlinks unavailable)"
+      fi
     else
       cp -R "$src" "$dst"
       success "copied $src to $dst (symlinks unavailable)"

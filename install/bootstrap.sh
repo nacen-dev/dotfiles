@@ -85,6 +85,12 @@ install_apps () {
 }
 
 setup_local_bin_path () {
+  # Let later installers find tools installed in ~/.local/bin during this run.
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) export PATH="$HOME/.local/bin:$PATH" ;;
+  esac
+
   add_local_bin_to_windows_path
 }
 
@@ -97,8 +103,8 @@ setup_git_hooks () {
 
 install_packages
 setup_gitconfig
-install_apps
 setup_local_bin_path
+install_apps
 install_dotfiles
 setup_zshrc_local
 setup_git_hooks

@@ -20,14 +20,16 @@ supported.
 1. installs `curl` with the OS's package manager on Linux/macOS
    (`apt`/`dnf`/`pacman`/`zypper` or `brew`); Windows requires `curl` to already
    be available in Git Bash;
-2. installs applications via `install/installer.sh` (see below);
-3. creates `git/gitconfig.symlink` from the example, prompting for your
+2. creates `git/gitconfig.symlink` from the example, prompting for your
    name/email and picking the right credential helper for the OS, unless
    `~/.gitconfig` already exists;
-4. links every `*.symlink` into `$HOME` (app configs are linked by their own
+3. puts `~/.local/bin` on the current process's `PATH` so later installers can
+   find tools installed earlier in the run (for example, `uv`, which the Python
+   installer may install); on Windows it also adds `~/.local/bin` to the current
+   user's persistent `PATH` (restart Git Bash to pick up that change);
+4. installs applications via `install/installer.sh` (see below);
+5. links every `*.symlink` into `$HOME` (app configs are linked by their own
    `install.sh`), preserving an existing `~/.gitconfig`;
-5. adds `~/.local/bin` to zsh's `PATH` and, on Windows, to the current user's
-   persistent `PATH` (restart Git Bash to pick up the Windows change);
 6. creates `~/.zshrc.local` from `zsh/zshrc.local.example` if missing;
 7. installs the pre-commit secret-scan hook (`core.hooksPath=.githooks`).
 
@@ -51,7 +53,7 @@ than failed.
 | `micro/`      | [micro](https://micro-editor.github.io) editor (Windows: 2.0.15 via WinGet, 2.0.11 via Chocolatey) |
 | `opencode/`   | [opencode](https://opencode.ai) + global config                                                   |
 | `uv/`         | [uv](https://docs.astral.sh/uv/)                                                                  |
-| `go/`         | [Go](https://go.dev) toolchain                                                                    |
+| `go/`         | [Go](https://go.dev) toolchain (pinned release, archive SHA256-verified)                          |
 | `python/`     | Python 3.14 via uv, set as default (skipped if `python3` exists)                                  |
 | `godot/`      | [Godot](https://godotengine.org) game engine (skipped if already installed)                       |
 | `docker/`     | [Docker Engine](https://docs.docker.com/engine/) (Linux only)                                     |
@@ -109,6 +111,9 @@ in `~/.zshrc.local`; keep `zsh/zshrc.symlink` portable.
 ## Platform support
 
 Linux is the primary target. macOS and Windows (Git Bash) are supported on a
-best-effort basis; symlink creation falls back to copying if the OS does not
-allow symlinks. Installers that do not apply to the current platform are
-skipped rather than treated as failures.
+best-effort basis. Where a platform allows symlinks, an existing config is
+adopted as a managed symlink (backing up any conflicting file first). Where it
+does not, linking falls back to copying, and a copy that already matches the
+repository is recognized as deployed on later runs (this includes Git Bash
+setups where `ln -s` succeeds by copying). Installers that do not apply to the
+current platform are skipped rather than treated as failures.
