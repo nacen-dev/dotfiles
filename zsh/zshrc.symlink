@@ -21,6 +21,14 @@ plugins=(git)
 
 [ -s "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
 
+# Load fzf key bindings and completion when supported (fzf 0.48+).
+if command -v fzf >/dev/null 2>&1; then
+  if __DOTFILES_FZF_ZSH_INIT="$(fzf --zsh 2>/dev/null)"; then
+    eval "$__DOTFILES_FZF_ZSH_INIT"
+  fi
+  unset __DOTFILES_FZF_ZSH_INIT
+fi
+
 alias python="python3"
 
 export EDITOR="micro"

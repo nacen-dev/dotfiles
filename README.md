@@ -49,6 +49,8 @@ than failed.
 | ------------- | ------------------------------------------------------------------------------------------------- |
 | `zsh/`        | zsh shell                                                                                         |
 | `oh-my-zsh/`  | [Oh My Zsh](https://ohmyz.sh)                                                                     |
+| `tmux/`       | [tmux](https://github.com/tmux/tmux) terminal multiplexer (Linux/macOS; skipped on Windows)         |
+| `fzf/`        | [fzf](https://github.com/junegunn/fzf) command-line fuzzy finder with Zsh key bindings/completion  |
 | `nvm/`        | nvm (Linux/macOS) / nvm-windows                                                                   |
 | `micro/`      | [micro](https://micro-editor.github.io) editor (Windows: 2.0.15 via WinGet, 2.0.11 via Chocolatey) |
 | `opencode/`   | [opencode](https://opencode.ai) + global config                                                   |
@@ -68,6 +70,8 @@ backup/     backup.sh, restore.sh, manifest
 git/        gitconfig + global gitignore
 zsh/        install.sh + zshrc + zshrc.local.example
 oh-my-zsh/  install.sh
+tmux/       install.sh + tmux.conf
+fzf/        install.sh
 nvm/        install.sh
 micro/      install.sh + bindings.json
 opencode/   install.sh + opencode.jsonc
